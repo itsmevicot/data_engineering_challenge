@@ -73,8 +73,8 @@ def task_transform_data_from_postgresql(ti):
         data_list.append(data_dict)
     df = pd.DataFrame(data_list)
     df.to_parquet('tmp/vendas.parquet', index=None)
-
     df = pd.read_parquet('tmp/vendas.parquet')
+
     return df
 
 
@@ -126,10 +126,17 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
         sql='sql/insert_data_into_funcionarios.sql',
     )
 
+    task_load_data_from_postgresql = PostgresOperator(
+        task_id='task_load_data_from_postgresql',
+        postgres_conn_id='local_database',
+        sql='sql/insert_data_into_vendas.sql',
+    )
+
 
 
     start_task >> tasks[0:] >> task_transform_data_from_api >> task_load_data_from_employees_file
     start_task >> task_extract_parquet_file_from_gcs >> task_load_data_from_categories_file
     start_task >> task_extract_data_from_postgresql >> task_transform_data_from_postgresql
 
-    # task_load_data_from_categories_file >> task_load_data_from_employees_file >> task_load_data_from_postgresql
+    task_load_data_from_categories_file >> task_load_data_from_postgresql
+    task_load_data_from_employees_file >> task_load_data_from_postgresql
