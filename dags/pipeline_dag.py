@@ -24,7 +24,7 @@ def extract_data_from_bix_api(id):
     return http_task
 
 
-def extract_parquet_file_from_gcp():
+def extract_parquet_file_from_gcs():
     '''Downloads the parquet file from the Google Cloud Storage and returns it as a DataFrame.'''
 
     url = "https://storage.googleapis.com/challenge_junior/categoria.parquet"
@@ -36,7 +36,8 @@ def extract_parquet_file_from_gcp():
         file.write(response.content)
         print("Parquet file downloaded successfully!")
 
-    pd.read_parquet('tmp/categoria.parquet')
+    df = pd.read_parquet('tmp/categoria.parquet')
+    return df
 
 
 def transform_data_from_api(ti):
@@ -53,6 +54,9 @@ def transform_data_from_api(ti):
         data_list.append(data_dict)
     df = pd.DataFrame(data_list)
     df.to_parquet('tmp/funcionarios.parquet', index=None)
+    df = pd.read_parquet('tmp/funcionarios.parquet')
+
+    return df
 
 
 def task_transform_data_from_postgresql(ti):
@@ -70,8 +74,8 @@ def task_transform_data_from_postgresql(ti):
     df = pd.DataFrame(data_list)
     df.to_parquet('tmp/vendas.parquet', index=None)
 
-    print("LISTA:", data_list)
-    print("oi")
+    df = pd.read_parquet('tmp/vendas.parquet')
+    return df
 
 
 
@@ -95,9 +99,9 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
         sql='SELECT * FROM public.venda;'
     )
 
-    task_extract_parquet_file_from_gcp = PythonOperator(
-        task_id='task_extract_parquet_file_from_gcp',
-        python_callable=extract_parquet_file_from_gcp
+    task_extract_parquet_file_from_gcs = PythonOperator(
+        task_id='task_extract_parquet_file_from_gcs',
+        python_callable=extract_parquet_file_from_gcs
     )
 
     task_transform_data_from_api = PythonOperator(
@@ -110,8 +114,22 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
         python_callable = task_transform_data_from_postgresql
     )
 
+    task_load_data_from_categories_file = PostgresOperator(
+        task_id='task_load_data_from_categories_file',
+        postgres_conn_id='local_database',
+        sql='sql/insert_data_into_categorias.sql',
+    )
+
+    task_load_data_from_employees_file = PostgresOperator(
+        task_id='task_load_data_from_employees_file',
+        postgres_conn_id='local_database',
+        sql='sql/insert_data_into_funcionarios.sql',
+    )
 
 
-    start_task >> tasks[0:] >> task_transform_data_from_api
-    start_task >> task_extract_parquet_file_from_gcp
+
+    start_task >> tasks[0:] >> task_transform_data_from_api >> task_load_data_from_employees_file
+    start_task >> task_extract_parquet_file_from_gcs >> task_load_data_from_categories_file
     start_task >> task_extract_data_from_postgresql >> task_transform_data_from_postgresql
+
+    # task_load_data_from_categories_file >> task_load_data_from_employees_file >> task_load_data_from_postgresql
