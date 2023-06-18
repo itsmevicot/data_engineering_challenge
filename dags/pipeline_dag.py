@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.models import Variable
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.http_operator import SimpleHttpOperator
 from airflow.operators.postgres_operator import PostgresOperator
@@ -17,7 +18,6 @@ def extract_data_from_bix_api(id):
     http_task = SimpleHttpOperator(
         task_id=f'task_get_employee_id_{id}',
         http_conn_id="bix_api",
-        endpoint="https://us-central1-bix-tecnologia-prd.cloudfunctions.net/api_challenge_junior",
         method="GET",
         data={"id": id},
     )
@@ -27,7 +27,7 @@ def extract_data_from_bix_api(id):
 def extract_parquet_file_from_gcs():
     '''Downloads the parquet file from the Google Cloud Storage and returns it as a DataFrame.'''
 
-    url = "https://storage.googleapis.com/challenge_junior/categoria.parquet"
+    url = Variable.get('url_to_gcs_parquet_file')
     response = requests.get(url)
     response.raise_for_status()
 
@@ -60,6 +60,9 @@ def transform_data_from_api(ti):
 
 
 def task_transform_data_from_postgresql(ti):
+    ''' Receives data from the PostgreSQL database and transforms it into a Parquet file.
+    :param ti: Task Instance '''
+
     data_list = []
     linhas = ti.xcom_pull(task_ids='task_extract_data_from_postgresql')
     for linha in linhas:
@@ -79,6 +82,8 @@ def task_transform_data_from_postgresql(ti):
 
 
 def cleanup_temp_files():
+    ''' Remove the temporary parquet files from the tmp folder.'''
+
     count = 0
     for filename in os.listdir('tmp'):
         file_path = os.path.join('tmp', filename)
