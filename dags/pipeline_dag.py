@@ -5,7 +5,7 @@ from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 import requests
 import pandas as pd
-import json
+import os
 from datetime import datetime
 
 
@@ -78,6 +78,17 @@ def task_transform_data_from_postgresql(ti):
     return df
 
 
+def cleanup_temp_files():
+    count = 0
+    for filename in os.listdir('tmp'):
+        file_path = os.path.join('tmp', filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            count += 1
+            print(f"Deleted file: {file_path}")
+    print(f"Deleted {count} files.")
+
+
 
 with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX API, PostgreSQL database, and a parquet file.',
          schedule_interval='@daily', start_date=datetime(2023, 6, 16), catchup=False) as dag:
@@ -132,6 +143,10 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
         sql='sql/insert_data_into_vendas.sql',
     )
 
+    task_to_cleanup = PythonOperator(
+        task_id="task_to_cleanup",
+        python_callable=cleanup_temp_files
+    )
 
 
     start_task >> tasks[0:] >> task_transform_data_from_api >> task_load_data_from_employees_file
@@ -140,3 +155,6 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
 
     task_load_data_from_categories_file >> task_load_data_from_postgresql
     task_load_data_from_employees_file >> task_load_data_from_postgresql
+    task_transform_data_from_postgresql >> task_load_data_from_postgresql
+
+    task_load_data_from_postgresql >> task_to_cleanup
