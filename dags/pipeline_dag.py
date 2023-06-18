@@ -95,8 +95,11 @@ def cleanup_temp_files():
 
 
 
-with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX API, PostgreSQL database, and a parquet file.',
-         schedule_interval='@daily', start_date=datetime(2023, 6, 16), catchup=False) as dag:
+with DAG('bix_etl_dag', description='DAG to execute an ETL on the BIX API, PostgreSQL database and the'
+                                    ' Parquet File located on the GCS.',
+    schedule_interval='@daily',
+    start_date= datetime(2023, 6, 16),
+    catchup= False) as dag:
 
     start_task = DummyOperator(
         task_id='task_start_pipeline'
@@ -112,7 +115,7 @@ with DAG('pipeline_dag', description='Pipeline DAG to retrieve data from the BIX
     task_extract_data_from_postgresql = PostgresOperator(
         task_id='task_extract_data_from_postgresql',
         postgres_conn_id='bix_database',
-        sql='SELECT * FROM public.venda;'
+        sql='sql/select_data_from_db.sql'
     )
 
     task_extract_parquet_file_from_gcs = PythonOperator(
