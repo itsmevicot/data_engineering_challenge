@@ -95,11 +95,13 @@ def cleanup_temp_files():
 
 
 
-with DAG('bix_etl_dag', description='DAG to execute an ETL on the BIX API, PostgreSQL database and the'
-                                    ' Parquet File located on the GCS.',
-    schedule_interval='@daily',
-    start_date= datetime(2023, 6, 16),
-    catchup= False) as dag:
+with DAG(
+        dag_id='bix_etl_dag',
+        description='DAG for performing an ETL process on the BIX API, PostgreSQL database, and Parquet File stored in Google Cloud Storage (GCS).',
+        schedule_interval='@daily',
+        start_date= datetime(2023, 6, 16),
+        catchup= False
+) as dag:
 
     start_task = DummyOperator(
         task_id='task_start_pipeline'
@@ -151,8 +153,8 @@ with DAG('bix_etl_dag', description='DAG to execute an ETL on the BIX API, Postg
         sql='sql/insert_data_into_vendas.sql',
     )
 
-    task_to_cleanup = PythonOperator(
-        task_id="task_to_cleanup",
+    task_cleanup_tmp_files = PythonOperator(
+        task_id="task_cleanup_tmp_files",
         python_callable=cleanup_temp_files
     )
 
@@ -165,4 +167,4 @@ with DAG('bix_etl_dag', description='DAG to execute an ETL on the BIX API, Postg
     task_load_data_from_employees_file >> task_load_data_from_postgresql
     task_transform_data_from_postgresql >> task_load_data_from_postgresql
 
-    task_load_data_from_postgresql >> task_to_cleanup
+    task_load_data_from_postgresql >> task_cleanup_tmp_files
