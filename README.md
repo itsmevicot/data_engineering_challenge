@@ -16,6 +16,7 @@
 │ └── sql
 ├── logs
 ├── plugins
+├── tmp
 └── docker-compose.yaml
 ```
 
