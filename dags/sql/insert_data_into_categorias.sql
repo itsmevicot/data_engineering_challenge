@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE IF NOT EXISTS public.TB_CATEGORIA (
     id serial PRIMARY KEY,
-    nome_categoria varchar
+    nome_categoria VARCHAR NOT NULL CHECK (nome_categoria <> '')
 );
 
 {% set rows = ti.xcom_pull(task_ids='task_extract_parquet_file_from_gcs') %}

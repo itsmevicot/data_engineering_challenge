@@ -3,10 +3,10 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE IF NOT EXISTS public.TB_VENDAS (
     id_venda serial PRIMARY KEY,
-    id_funcionario integer REFERENCES public.TB_FUNCIONARIO (id),
-    id_categoria integer REFERENCES public.TB_CATEGORIA (id),
-    data_venda date,
-    venda integer
+    id_funcionario INTEGER NOT NULL REFERENCES public.TB_FUNCIONARIO (id),
+    id_categoria INTEGER NOT NULL REFERENCES public.TB_CATEGORIA (id),
+    data_venda DATE NOT NULL,
+    venda INTEGER NOT NULL CHECK (venda <> 0)
 );
 
 {% set rows = ti.xcom_pull(task_ids='task_transform_data_from_postgresql') %}

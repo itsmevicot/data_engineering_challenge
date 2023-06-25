@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE IF NOT EXISTS public.TB_FUNCIONARIO (
     id serial PRIMARY KEY,
-    nome varchar
+    nome VARCHAR NOT NULL CHECK (nome <> '')
 );
 
 {% set rows = ti.xcom_pull(task_ids='task_transform_data_from_api') %}
