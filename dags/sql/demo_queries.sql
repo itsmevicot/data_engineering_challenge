@@ -29,3 +29,27 @@ JOIN public.tb_categoria c ON v.id_categoria = c.id
 GROUP BY c.nome_categoria
 ORDER BY total_sales DESC;
 
+-- Funcionários ordenados por valor total de vendas
+
+SELECT f.nome AS funcionario, SUM(v.venda) AS valor_total_vendas
+FROM public.tb_vendas v
+JOIN public.tb_funcionario f ON v.id_funcionario = f.id
+GROUP BY f.nome
+ORDER BY valor_total_vendas DESC
+
+
+-- Meses ordenados por valor total de vendas
+
+SELECT EXTRACT(MONTH FROM data_venda) AS month, SUM(venda) AS total_sales
+FROM public.tb_vendas
+GROUP BY EXTRACT(MONTH FROM data_venda)
+ORDER BY total_sales DESC;
+
+-- Categoria ordenadas por mais lucrativas
+
+SELECT c.nome_categoria AS category_name, SUM(v.venda) AS total_sales_amount
+FROM public.tb_vendas v
+JOIN public.tb_categoria c ON v.id_categoria = c.id
+GROUP BY c.nome_categoria
+ORDER BY total_sales_amount DESC
+
