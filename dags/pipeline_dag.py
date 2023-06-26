@@ -117,7 +117,7 @@ with DAG(
     task_extract_data_from_postgresql = PostgresOperator(
         task_id='task_extract_data_from_postgresql',
         postgres_conn_id='bix_database',
-        sql='sql/select_data_from_db.sql'
+        sql='sql/select_from_venda.sql'
     )
 
     task_extract_parquet_file_from_gcs = PythonOperator(
@@ -138,19 +138,19 @@ with DAG(
     task_load_data_from_categories_file = PostgresOperator(
         task_id='task_load_data_from_categories_file',
         postgres_conn_id='local_database',
-        sql='sql/insert_data_into_categorias.sql',
+        sql='sql/create_insert_categories.sql',
     )
 
     task_load_data_from_employees_file = PostgresOperator(
         task_id='task_load_data_from_employees_file',
         postgres_conn_id='local_database',
-        sql='sql/insert_data_into_funcionarios.sql',
+        sql='sql/create_insert_employees.sql',
     )
 
     task_load_data_from_postgresql = PostgresOperator(
         task_id='task_load_data_from_postgresql',
         postgres_conn_id='local_database',
-        sql='sql/insert_data_into_vendas.sql',
+        sql='sql/create_insert_sales.sql',
     )
 
     task_cleanup_tmp_files = PythonOperator(
