@@ -33,8 +33,9 @@ Foi implementada uma DAG (Directed Acyclic Graph) para realizar uma ETL (Extract
 
 Após a extração, os dados foram estruturados com dicionários para depois serem transformados em arquivos .parquet com o uso da biblioteca Pandas.
 Então, os dados foram carregados em um Banco de Dados local através de scripts SQL. Após a inserção, os arquivos .parquet gerados são deletados.
-Aqui está uma imagem da DAG feita:
+A seguir, a DAG final gerada.
 
-![image](https://github.com/itsmevicot/bix_challenge/assets/78550840/b872c7a6-9999-401e-8b35-63e9c841faab)
+![image](https://github.com/itsmevicot/data_engineering_challenge/assets/78550840/69174669-9d2f-40ea-8102-6604363ff070)
+
 
 
