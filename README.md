@@ -1,4 +1,4 @@
-# Desafio de Engenharia de Dados - BIX
+# Desafio de Engenharia de Dados
 
 ### Tecnologias usadas
 - Docker
